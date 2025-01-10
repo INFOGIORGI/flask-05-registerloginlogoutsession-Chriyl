@@ -1,7 +1,22 @@
 {% extends 'base.html' %}
 
 {% block contenuto_container %}
+<style>
+    .center-button {
+        position: absolute;
+        top: 18.9%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-<button> <a href="{{url_for("register")}}">register</a></button>
-<button> <a href="{{url_for("logout")}}">logout</a></button>
+    .center-button-down {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>
+
+<button class="center-button">  <a href="{{url_for("register")}}">register</a></button>
+<button  class="center-button-down"> <a href="{{url_for("logout")}}">logout</a></button>
 {% endblock %}
