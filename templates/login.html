@@ -2,11 +2,11 @@
 
 {%block contenuto_container%}
 
-<form action="">
-    email:
-    <input type="text" name="email" id="pss">
+<form action="/login", method="post">
+    nome:
+    <input type="text" name="nome" id="pss" placeholder="inserisci nome">
     password:
-    <input type="password" name="pswd" id="pss">
+    <input type="password" name="pswd" id="pss" placeholder="inserisci pswd">
     <button type="submit">Login</button>
 </form>
 
