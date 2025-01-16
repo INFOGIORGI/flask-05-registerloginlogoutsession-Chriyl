@@ -9,7 +9,7 @@ app.config["MYSQL_PORT"] = 53306
 app.config["MYSQL_USER"] = "ospite"
 app.config["MYSQL_PASSWORD"] = "ospite"
 app.config["MYSQL_DB"] = "w3schools"
-
+                        
 Mysql= MySQL(app)
 
 @app.route("/")
@@ -35,7 +35,7 @@ def register():
         if pswd != pswdconf:
             return render_template("register.html", titolo="register", header="register", error="pswd non conformi")
         
-        cursor: function = Mysql.connect.cursor()
+        cursor = Mysql.connect.cursor()
         query: str= """SELECT * FROM users WHERE username  = %s """
         cursor.execute(query, (username,))
         dati: tuple = cursor.fetchall()
@@ -50,11 +50,18 @@ def register():
                 VALUES
                 (%s, %s, %s, %s)
                 """
-    
-        cursor.execute(query_insert, (username, pswd, nome, cognome,))
-        Mysql.connection.commit()
+        try:
+             
+            cursor.execute(query_insert, (username, pswd, nome, cognome))
+            Mysql.connection.commit()
+            return redirect(url_for("personal"))
+        except Exception as e:
+            return render_template("register.html", titolo="register", header="register", error=e)
+
+            
+   
        
-        return redirect(url_for("personal"))
+      
     
 
 
