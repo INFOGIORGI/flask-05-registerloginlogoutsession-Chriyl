@@ -35,7 +35,7 @@ def register():
         if pswd != pswdconf:
             return render_template("register.html", titolo="register", header="register", error="pswd non conformi")
         
-        cursor = Mysql.connect.cursor()
+        cursor = Mysql.connection.cursor()
         query: str= """SELECT * FROM users WHERE username  = %s """
         cursor.execute(query, (username,))
         dati: tuple = cursor.fetchall()
