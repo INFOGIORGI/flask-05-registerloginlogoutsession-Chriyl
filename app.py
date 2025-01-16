@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, request, url_for # type: ignore
 from flask_mysqldb import MySQL
+from utils import *
 
 
 app = Flask(__name__)
@@ -25,12 +26,15 @@ def register():
     if request.method == "GET":
         return render_template("register.html", titolo="register", header="register")
     elif request.method == "POST":
-        nome: str = request.form.get("nome")
-        username: str = request.form.get("username")
-        cognome: str = request.form.get("cognome")
-        pswd: str = request.form.get("pswd")
-        pswdconf: str = request.form.get("pswdconf")
-        print(nome, cognome, username, pswd, pswdconf)
+        nome: str = request.form.get("nome", "")
+        username: str = request.form.get("username", "")
+        cognome: str = request.form.get("cognome", "")
+        pswd: str = request.form.get("pswd", "")
+        pswdconf: str = request.form.get("pswdconf", "")
+        #print(nome, cognome, username, pswd, pswdconf)
+
+        if isEmpty([nome,cognome,pswd, pswdconf,username]):
+            return render_template("register.html", titolo="register", header="register", error="non ci possono essere campi vuoti")
 
         if pswd != pswdconf:
             return render_template("register.html", titolo="register", header="register", error="pswd non conformi")
@@ -40,7 +44,7 @@ def register():
         cursor.execute(query, (username,))
         dati: tuple = cursor.fetchall()
 
-        print(dati)
+        #print(dati)
 
         if dati:
             return render_template("register.html", titolo="register", header="register", error="utente gia esistente")
@@ -56,7 +60,7 @@ def register():
             Mysql.connection.commit()
             return redirect(url_for("personal"))
         except Exception as e:
-            return render_template("register.html", titolo="register", header="register", error=e)
+            return render_template("register.html", titolo="register", header="register", error="c'é stato un problema con il database")
 
             
    
