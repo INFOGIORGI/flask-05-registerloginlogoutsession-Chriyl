@@ -1,10 +1,11 @@
-from flask import Flask, render_template, redirect, request, url_for # type: ignore
+from flask import Flask, render_template, redirect, request, url_for, flash # type: ignore
 from flask_mysqldb import MySQL
+from werkzeug.security import generate_password_hash, check_password_hash
 from utils import *
 
 
 app = Flask(__name__)
-
+app.secret_key = "AlbertoCorvaglia1234567890"
 app.config["MYSQL_HOST"] = "138.41.20.102"
 app.config["MYSQL_PORT"] = 53306
 app.config["MYSQL_USER"] = "ospite"
@@ -17,9 +18,37 @@ Mysql= MySQL(app)
 def home():
     return render_template("home.html", titolo="home", header="home")
 
-@app.route("/logout")
+@app.route("/logout", methods=["GET", "POST"])
 def logout():
-    return render_template("logout.html", titolo="logout", header="logout")
+    if request.method == "GET":
+        return render_template("logout.html", titolo="logout", header="logout")
+    elif request.method == "POST":
+        nome: str = request.form.get("nome", "")
+        username: str = request.form.get("username", "")
+        password: str = request.form.get("pswd", "")
+
+        if isEmpty([nome, username, password]):
+            flash("non ci possono essere campi vuoti")
+            return redirect(url_for("login"))
+        try:
+            cursor = Mysql.connection.cursor()
+            select: str = """SELECT * FROM users WHERE username = %s and password = %s and nome %s """
+            cursor.execute(select, (username,generate_password_hash(password), nome))
+            dati = cursor.fetchall()
+
+            if dati:
+               return redirect(url_for("personal")) 
+            else:
+                flash("nome, username o password errati")
+                return redirect(url_for("login"))
+
+            
+        except Exception as e :
+            flash(e)
+            return redirect(url_for("login"))
+
+       
+        
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -34,10 +63,13 @@ def register():
         #print(nome, cognome, username, pswd, pswdconf)
 
         if isEmpty([nome,cognome,pswd, pswdconf,username]):
-            return render_template("register.html", titolo="register", header="register", error="non ci possono essere campi vuoti")
+            flash("non ci possono essere campi vuoti")
+            #return render_template("register.html", titolo="register", header="register", error="non ci possono essere campi vuoti")
+            return redirect(url_for("register"))
 
         if pswd != pswdconf:
-            return render_template("register.html", titolo="register", header="register", error="pswd non conformi")
+            flash("password non conformi")
+            return redirect(url_for("register"))
         
         cursor = Mysql.connection.cursor()
         query: str= """SELECT * FROM users WHERE username  = %s """
@@ -47,39 +79,30 @@ def register():
         #print(dati)
 
         if dati:
-            return render_template("register.html", titolo="register", header="register", error="utente gia esistente")
+            flash("utente gia esistente")
+            return redirect(url_for("register"))
+        
+        
 
         query_insert = """
                 INSERT INTO users (username, password, nome, cognome)
                 VALUES
                 (%s, %s, %s, %s)
                 """
+        hashedPswd = generate_password_hash(pswd)
+        #if check_password_hash(password=pswd, pwhash=hashedPswd):
+        #    return render_template("register.html", titolo="register", header="register", error="c'é stato un problema con l'hash della pswd")
+
         try:
              
-            cursor.execute(query_insert, (username, pswd, nome, cognome))
+            cursor.execute(query_insert, (username, hashedPswd, nome, cognome))
             Mysql.connection.commit()
             return redirect(url_for("personal"))
         except Exception as e:
-            return render_template("register.html", titolo="register", header="register", error="c'é stato un problema con il database")
-
-            
-   
-       
-      
-    
-
-
-        # eseguire query SELECT (email, pswd) FROM users WHERE users.email = email and users.pswd = pswd
-
-        # condizione per verificare se esiste gia 
-
-        # se esiste lancia errore al client
-
-        # se non esiste ritorna la sessione, inserisce nel db e redirecta su /personal
-            
+            flash(e)
+            return redirect(url_for("register"))
 
         
-
 @app.route("/login"  ,methods=["GET", "POST"])
 def login():
     return render_template("login.html", titolo="login", header="login")

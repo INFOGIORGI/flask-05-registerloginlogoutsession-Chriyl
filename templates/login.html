@@ -2,12 +2,24 @@
 
 {%block contenuto_container%}
 
-<form action="/login", method="post">
+<form action="/login", method="POST">
     nome:
     <input type="text" name="nome" id="pss" placeholder="inserisci nome">
+    Username:
+    <input type="text" name="username" id="pss" placeholder="inserisci username">
     password:
     <input type="password" name="pswd" id="pss" placeholder="inserisci pswd">
     <button type="submit">Login</button>
 </form>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <div class="alert alert-{{ category }} mt-3" role="alert">
+        {% for category, message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
 
 {%endblock%}
