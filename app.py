@@ -105,7 +105,55 @@ def register():
         
 @app.route("/login"  ,methods=["GET", "POST"])
 def login():
-    return render_template("login.html", titolo="login", header="login")
+    if request.method == "GET":
+        return render_template("login.html", titolo="login", header="login")
+    elif request.method == "POST":
+        username = request.form.get("username", "")
+        pswd = request.form.get("pswd", "")
+
+        #print(username, pswd)
+        
+        if isEmpty([username,pswd]):
+            flash("non ci possono essere campi vuoti")
+            return redirect(url_for("login"))
+        
+        #hash_pswd = generate_password_hash(pswd)
+        #dati = ()
+        #print(hash_pswd)
+
+        try:
+            cursor = Mysql.connection.cursor()
+            query = """SELECT * FROM users WHERE username = %s"""
+            cursor.execute(query, (username,))
+            dati: tuple = cursor.fetchall()
+            
+            
+                
+            
+            if not dati:
+                flash("username o password non corretti")
+                return redirect(url_for("login"))
+            
+            
+            stored_hash_db = dati[0][1]
+            
+            
+
+            if not check_password_hash(stored_hash_db, pswd):
+                flash("username o password non corretti")
+                return redirect(url_for("login"))
+
+
+            
+            return redirect(url_for("personal"))
+        except:
+            flash("c'é stato un problema con il db")
+            return redirect(url_for("login"))
+
+
+
+
+
 
 
 @app.route("/personal")
