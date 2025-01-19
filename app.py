@@ -55,28 +55,24 @@ def register():
     if request.method == "GET":
         return render_template("register.html", titolo="register", header="register")
     elif request.method == "POST":
-        nome: str = request.form.get("nome", "")
-        username: str = request.form.get("username", "")
-        cognome: str = request.form.get("cognome", "")
-        pswd: str = request.form.get("pswd", "")
-        pswdconf: str = request.form.get("pswdconf", "")
-        #print(nome, cognome, username, pswd, pswdconf)
+        
+        credentials = get_request_params("nome","username", "cognome", "pswd", "pswdconf")
+        
 
-        if isEmpty([nome,cognome,pswd, pswdconf,username]):
+        if isEmpty(credentials.values()):
             flash("non ci possono essere campi vuoti")
-            #return render_template("register.html", titolo="register", header="register", error="non ci possono essere campi vuoti")
             return redirect(url_for("register"))
 
-        if pswd != pswdconf:
+        if credentials["pswd"] != credentials["pswdconf"]:
             flash("password non conformi")
             return redirect(url_for("register"))
         
         cursor = Mysql.connection.cursor()
         query: str= """SELECT * FROM users WHERE username  = %s """
-        cursor.execute(query, (username,))
+        cursor.execute(query, (credentials["username"],))
         dati: tuple = cursor.fetchall()
 
-        #print(dati)
+       
 
         if dati:
             flash("utente gia esistente")
@@ -89,17 +85,15 @@ def register():
                 VALUES
                 (%s, %s, %s, %s)
                 """
-        hashedPswd = generate_password_hash(pswd)
-        #if check_password_hash(password=pswd, pwhash=hashedPswd):
-        #    return render_template("register.html", titolo="register", header="register", error="c'é stato un problema con l'hash della pswd")
+        credentials["pswd"] = generate_password_hash(credentials["pswd"])
+       
 
         try:
-             
-            cursor.execute(query_insert, (username, hashedPswd, nome, cognome))
+            cursor.execute(query_insert, (credentials["username"], credentials["pswd"], credentials["nome"], credentials["cognome"]))
             Mysql.connection.commit()
             return redirect(url_for("personal"))
         except Exception as e:
-            flash(e)
+            flash("c'é stato un problema con il db")
             return redirect(url_for("register"))
 
         
@@ -108,12 +102,11 @@ def login():
     if request.method == "GET":
         return render_template("login.html", titolo="login", header="login")
     elif request.method == "POST":
-        username = request.form.get("username", "")
-        pswd = request.form.get("pswd", "")
+        credentials = get_request_params("username", "pswd")
 
         #print(username, pswd)
         
-        if isEmpty([username,pswd]):
+        if isEmpty(credentials.values()):
             flash("non ci possono essere campi vuoti")
             return redirect(url_for("login"))
         
@@ -124,7 +117,7 @@ def login():
         try:
             cursor = Mysql.connection.cursor()
             query = """SELECT * FROM users WHERE username = %s"""
-            cursor.execute(query, (username,))
+            cursor.execute(query, (credentials["username"],))
             dati: tuple = cursor.fetchall()
             
             
@@ -139,7 +132,7 @@ def login():
             
             
 
-            if not check_password_hash(stored_hash_db, pswd):
+            if not check_password_hash(stored_hash_db, credentials["pswd"]):
                 flash("username o password non corretti")
                 return redirect(url_for("login"))
 
