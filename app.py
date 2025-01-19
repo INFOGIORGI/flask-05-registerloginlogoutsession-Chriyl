@@ -20,32 +20,7 @@ def home():
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
-    if request.method == "GET":
-        return render_template("logout.html", titolo="logout", header="logout")
-    elif request.method == "POST":
-        nome: str = request.form.get("nome", "")
-        username: str = request.form.get("username", "")
-        password: str = request.form.get("pswd", "")
-
-        if isEmpty([nome, username, password]):
-            flash("non ci possono essere campi vuoti")
-            return redirect(url_for("login"))
-        try:
-            cursor = Mysql.connection.cursor()
-            select: str = """SELECT * FROM users WHERE username = %s and password = %s and nome %s """
-            cursor.execute(select, (username,generate_password_hash(password), nome))
-            dati = cursor.fetchall()
-
-            if dati:
-               return redirect(url_for("personal")) 
-            else:
-                flash("nome, username o password errati")
-                return redirect(url_for("login"))
-
-            
-        except Exception as e :
-            flash(e)
-            return redirect(url_for("login"))
+   ...
 
        
         
